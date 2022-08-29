@@ -31,7 +31,7 @@ def show_detail(url):
     return cache.lrange(url + "_detail", 0, -1)
 
 
-@app.route("/a", methods=["GET"])
+@app.route("/3Aoma6i", methods=["GET"])
 def a():
     ip = request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
     detail("a", ip, datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
@@ -39,7 +39,7 @@ def a():
     return busy
 
 
-@app.route("/b", methods=["GET"])
+@app.route("/5cpscvs", methods=["GET"])
 def b():
     ip = request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
     detail("b", ip, datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
