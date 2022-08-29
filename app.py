@@ -55,6 +55,7 @@ def catch_all(path):
         else:
             m = record_path.match(path)
             if m:
+                record(m.group(1), ip)
                 detail(m.group(1), ip, datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
                 return busy
             else:
