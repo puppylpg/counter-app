@@ -7,6 +7,7 @@ from flask import jsonify
 
 app = Flask(__name__)
 cache = redis.Redis(host="redis", port=6379)
+busy = "<html><body><p> oops...当前访问人数较多，请稍后再试... </p></body></html>"
 
 
 def record(url, ip):
@@ -35,7 +36,7 @@ def a():
     ip = request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
     detail("a", ip, datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     count = record("a", ip)
-    return "{} {}".format(ip, count)
+    return busy
 
 
 @app.route("/b", methods=["GET"])
@@ -43,7 +44,7 @@ def b():
     ip = request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
     detail("b", ip, datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     count = record("b", ip)
-    return "{} {}".format(ip, count)
+    return busy
 
 
 @app.route("/show_a", methods=["GET"])
@@ -58,12 +59,12 @@ def show_b():
 
 @app.route("/show_a_detail", methods=["GET"])
 def show_a_detail():
-    return '\n'.join([x.decode('utf-8') for x in show_detail("a")])
+    return "<html><body><p>" + '</p><p>'.join([x.decode('utf-8') for x in show_detail("a")]) + "</p></body></html>"
 
 
 @app.route("/show_b_detail", methods=["GET"])
 def show_b_detail():
-    return '\n'.join([x.decode('utf-8') for x in show_detail("b")])
+    return "<html><body><p>" + '</p><p>'.join([x.decode('utf-8') for x in show_detail("b")]) + "</p></body></html>"
 
 
 if __name__ == "__main__":
