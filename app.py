@@ -4,10 +4,16 @@ import redis
 from flask import Flask
 from flask import request
 from flask import jsonify
+import re
 
 app = Flask(__name__)
 cache = redis.Redis(host="redis", port=6379)
 busy = "<html><body><p> oops...当前访问人数较多，请稍后再试... </p></body></html>"
+front_busy = "<html><body><p> OoOoops...当前访问人数较多，请稍后再试... </p></body></html>"
+# regex
+show_detail_path = re.compile('/?show_(\w+)_detail')
+show_num_path = re.compile('/?show_(\w+)')
+record_path = re.compile('/?(\w+)')
 
 
 def record(url, ip):
@@ -31,40 +37,28 @@ def show_detail(url):
     return cache.lrange(url + "_detail", 0, -1)
 
 
-@app.route("/3Aoma6i", methods=["GET"])
-def a():
+def show_detail_html(url):
+    return "<html><body><p>" + '</p><p>'.join([x.decode('utf-8') for x in show_detail(url)]) + "</p></body></html>"
+
+
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def catch_all(path):
     ip = request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
-    detail("a", ip, datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-    count = record("a", ip)
-    return busy
-
-
-@app.route("/5cpscvs", methods=["GET"])
-def b():
-    ip = request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
-    detail("b", ip, datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
-    count = record("b", ip)
-    return busy
-
-
-@app.route("/show_a", methods=["GET"])
-def show_a():
-    return str(cache.scard("a"))
-
-
-@app.route("/show_b", methods=["GET"])
-def show_b():
-    return str(cache.scard("b"))
-
-
-@app.route("/show_a_detail", methods=["GET"])
-def show_a_detail():
-    return "<html><body><p>" + '</p><p>'.join([x.decode('utf-8') for x in show_detail("a")]) + "</p></body></html>"
-
-
-@app.route("/show_b_detail", methods=["GET"])
-def show_b_detail():
-    return "<html><body><p>" + '</p><p>'.join([x.decode('utf-8') for x in show_detail("b")]) + "</p></body></html>"
+    m = show_detail_path.match(path)
+    if m:
+        return show_detail_html(m.group(1))
+    else:
+        m = show_num_path.match(path)
+        if m:
+            return str(cache.scard(m.group(1)))
+        else:
+            m = record_path.match(path)
+            if m:
+                detail(m.group(1), ip, datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+                return busy
+            else:
+                return front_busy
 
 
 if __name__ == "__main__":
